@@ -370,12 +370,12 @@ namespace DnsClient
 
             // Setting up name servers.
             // Using manually configured ones and/or auto resolved ones.
-            IReadOnlyCollection<NameServer> servers = _originalOptions.NameServers?.ToArray() ?? new NameServer[0];
+            IReadOnlyCollection<NameServer> servers = (_originalOptions.NameServers?.ToArray() ?? new NameServer[0]).ToReadOnlyList();
 
             if (options.AutoResolveNameServers)
             {
                 _resolvedNameServers = NameServer.ResolveNameServers(skipIPv6SiteLocal: true, fallbackToGooglePublicDns: false);
-                servers = servers.Concat(_resolvedNameServers).ToArray();
+                servers = servers.Concat(_resolvedNameServers).ToArray().ToReadOnlyList();
 
                 // This will periodically get triggered on Query calls and
                 // will perform the same check as on NetworkAddressChanged.
@@ -416,19 +416,19 @@ namespace DnsClient
                 {
                     if (_logger.IsEnabled(LogLevel.Debug))
                     {
-                        _logger.LogDebug("No name server changes detected, still using {0}", string.Join(",", newServers));
+                        _logger.LogDebug("No name server changes detected, still using {0}", StringExtensions.Join(",", newServers));
                     }
                     return;
                 }
 
                 if (_logger.IsEnabled(LogLevel.Information))
                 {
-                    _logger.LogInformation("Found changes in local network, configured name servers now are: {0}", string.Join(",", newServers));
+                    _logger.LogInformation("Found changes in local network, configured name servers now are: {0}", StringExtensions.Join(",", newServers));
                 }
 
                 _resolvedNameServers = newServers;
                 var servers = _originalOptions.NameServers.Concat(_resolvedNameServers).ToArray();
-                Settings = new LookupClientSettings(_originalOptions, servers);
+                Settings = new LookupClientSettings(_originalOptions, servers.ToReadOnlyList());
             }
             catch (Exception ex)
             {
@@ -536,11 +536,11 @@ namespace DnsClient
 
         /// <inheritdoc/>
         public IDnsQueryResponse QueryServer(IReadOnlyCollection<IPAddress> servers, string query, QueryType queryType, QueryClass queryClass = QueryClass.IN)
-            => QueryServer(NameServer.Convert(servers), new DnsQuestion(query, queryType, queryClass));
+            => QueryServer(NameServer.Convert(servers).ToReadOnlyList(), new DnsQuestion(query, queryType, queryClass));
 
         /// <inheritdoc/>
         public IDnsQueryResponse QueryServer(IReadOnlyCollection<IPEndPoint> servers, string query, QueryType queryType, QueryClass queryClass = QueryClass.IN)
-            => QueryServer(NameServer.Convert(servers), new DnsQuestion(query, queryType, queryClass));
+            => QueryServer(NameServer.Convert(servers).ToReadOnlyList(), new DnsQuestion(query, queryType, queryClass));
 
         /// <inheritdoc/>
         public IDnsQueryResponse QueryServer(IReadOnlyCollection<NameServer> servers, string query, QueryType queryType, QueryClass queryClass = QueryClass.IN)
@@ -556,11 +556,11 @@ namespace DnsClient
 
         /// <inheritdoc/>
         public Task<IDnsQueryResponse> QueryServerAsync(IReadOnlyCollection<IPAddress> servers, string query, QueryType queryType, QueryClass queryClass = QueryClass.IN, CancellationToken cancellationToken = default)
-            => QueryServerAsync(NameServer.Convert(servers), new DnsQuestion(query, queryType, queryClass), cancellationToken);
+            => QueryServerAsync(NameServer.Convert(servers).ToReadOnlyList(), new DnsQuestion(query, queryType, queryClass), cancellationToken);
 
         /// <inheritdoc/>
         public Task<IDnsQueryResponse> QueryServerAsync(IReadOnlyCollection<IPEndPoint> servers, string query, QueryType queryType, QueryClass queryClass = QueryClass.IN, CancellationToken cancellationToken = default)
-            => QueryServerAsync(NameServer.Convert(servers), new DnsQuestion(query, queryType, queryClass), cancellationToken);
+            => QueryServerAsync(NameServer.Convert(servers).ToReadOnlyList(), new DnsQuestion(query, queryType, queryClass), cancellationToken);
 
         /// <inheritdoc/>
         public Task<IDnsQueryResponse> QueryServerAsync(IReadOnlyCollection<NameServer> servers, string query, QueryType queryType, QueryClass queryClass = QueryClass.IN, CancellationToken cancellationToken = default)
@@ -576,11 +576,11 @@ namespace DnsClient
 
         /// <inheritdoc/>
         public IDnsQueryResponse QueryServerReverse(IReadOnlyCollection<IPAddress> servers, IPAddress ipAddress)
-            => QueryServerReverse(NameServer.Convert(servers), ipAddress);
+            => QueryServerReverse(NameServer.Convert(servers).ToReadOnlyList(), ipAddress);
 
         /// <inheritdoc/>
         public IDnsQueryResponse QueryServerReverse(IReadOnlyCollection<IPEndPoint> servers, IPAddress ipAddress)
-            => QueryServerReverse(NameServer.Convert(servers), ipAddress);
+            => QueryServerReverse(NameServer.Convert(servers).ToReadOnlyList(), ipAddress);
 
         /// <inheritdoc/>
         public IDnsQueryResponse QueryServerReverse(IReadOnlyCollection<NameServer> servers, IPAddress ipAddress)
@@ -592,11 +592,11 @@ namespace DnsClient
 
         /// <inheritdoc/>
         public Task<IDnsQueryResponse> QueryServerReverseAsync(IReadOnlyCollection<IPAddress> servers, IPAddress ipAddress, CancellationToken cancellationToken = default)
-            => QueryServerReverseAsync(NameServer.Convert(servers), ipAddress, cancellationToken: cancellationToken);
+            => QueryServerReverseAsync(NameServer.Convert(servers).ToReadOnlyList(), ipAddress, cancellationToken: cancellationToken);
 
         /// <inheritdoc/>
         public Task<IDnsQueryResponse> QueryServerReverseAsync(IReadOnlyCollection<IPEndPoint> servers, IPAddress ipAddress, CancellationToken cancellationToken = default)
-            => QueryServerReverseAsync(NameServer.Convert(servers), ipAddress, cancellationToken: cancellationToken);
+            => QueryServerReverseAsync(NameServer.Convert(servers).ToReadOnlyList(), ipAddress, cancellationToken: cancellationToken);
 
         /// <inheritdoc/>
         public Task<IDnsQueryResponse> QueryServerReverseAsync(IReadOnlyCollection<NameServer> servers, IPAddress ipAddress, CancellationToken cancellationToken = default)
@@ -657,10 +657,10 @@ namespace DnsClient
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug(c_eventStartQuery, "Begin query [{0}] via {1} => {2} on [{3}].", head, handler.Type, question, string.Join(", ", servers));
+                _logger.LogDebug(c_eventStartQuery, "Begin query [{0}] via {1} => {2} on [{3}].", head, handler.Type, question, StringExtensions.Join(", ", servers));
             }
 
-            var result = ResolveQuery(servers.ToList(), queryOptions, handler, request, audit);
+            var result = ResolveQuery(servers.ToReadOnlyList(), queryOptions, handler, request, audit);
             if (!(result is TruncatedQueryResponse))
             {
                 return result;
@@ -675,7 +675,7 @@ namespace DnsClient
             }
 
             request.Header.RefreshId();
-            var tcpResult = ResolveQuery(servers.ToList(), queryOptions, _tcpFallbackHandler, request, audit);
+            var tcpResult = ResolveQuery(servers.ToReadOnlyList(), queryOptions, _tcpFallbackHandler, request, audit);
             if (tcpResult is TruncatedQueryResponse)
             {
                 throw new DnsResponseException("Unexpected truncated result from TCP response.")
@@ -715,10 +715,10 @@ namespace DnsClient
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug(c_eventStartQuery, "Begin query [{0}] via {1} => {2} on [{3}].", head, handler.Type, question, string.Join(", ", servers));
+                _logger.LogDebug(c_eventStartQuery, "Begin query [{0}] via {1} => {2} on [{3}].", head, handler.Type, question, StringExtensions.Join(", ", servers));
             }
 
-            var result = await ResolveQueryAsync(servers.ToList(), queryOptions, handler, request, audit, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var result = await ResolveQueryAsync(servers.ToReadOnlyList(), queryOptions, handler, request, audit, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (!(result is TruncatedQueryResponse))
             {
                 return result;
@@ -733,7 +733,7 @@ namespace DnsClient
             }
 
             request.Header.RefreshId();
-            var tcpResult = await ResolveQueryAsync(servers.ToList(), queryOptions, _tcpFallbackHandler, request, audit, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var tcpResult = await ResolveQueryAsync(servers.ToReadOnlyList(), queryOptions, _tcpFallbackHandler, request, audit, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (tcpResult is TruncatedQueryResponse)
             {
                 throw new DnsResponseException("Unexpected truncated result from TCP response.")
@@ -968,7 +968,7 @@ namespace DnsClient
             } // next server
 
             // 1.3.0: With the error handling, this should never be reached.
-            throw new DnsResponseException(DnsResponseCode.ConnectionTimeout, $"No connection could be established to any of the following name servers: {string.Join(", ", servers)}.")
+            throw new DnsResponseException(DnsResponseCode.ConnectionTimeout, $"No connection could be established to any of the following name servers: {StringExtensions.Join(", ", servers)}.")
             {
                 AuditTrail = audit?.Build()
             };
@@ -1055,7 +1055,7 @@ namespace DnsClient
                             onCancel = cancel;
                         });
 
-                        if (settings.Timeout != System.Threading.Timeout.InfiniteTimeSpan
+                        if (settings.Timeout != TimeoutEx.InfiniteTimeSpan
                             || (cancellationToken != CancellationToken.None && cancellationToken.CanBeCanceled))
                         {
                             var cts = new CancellationTokenSource(settings.Timeout);
@@ -1227,7 +1227,7 @@ namespace DnsClient
             } // next server
 
             // 1.3.0: With the error handling, this should never be reached.
-            throw new DnsResponseException(DnsResponseCode.ConnectionTimeout, $"No connection could be established to any of the following name servers: {string.Join(", ", servers)}.")
+            throw new DnsResponseException(DnsResponseCode.ConnectionTimeout, $"No connection could be established to any of the following name servers: {StringExtensions.Join(", ", servers)}.")
             {
                 AuditTrail = audit?.Build()
             };

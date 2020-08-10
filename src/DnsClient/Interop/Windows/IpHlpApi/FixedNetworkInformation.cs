@@ -39,7 +39,7 @@ namespace DnsClient.Windows.IpHlpApi
                         result = Interop.IpHlpApi.GetNetworkParams(buffer.Ptr, ref size);
                         if (result == Interop.IpHlpApi.ERROR_SUCCESS)
                         {
-                            fixedInfo = Marshal.PtrToStructure<Interop.IpHlpApi.FIXED_INFO>(buffer.Ptr);
+                            fixedInfo = (Interop.IpHlpApi.FIXED_INFO)Marshal.PtrToStructure(buffer.Ptr, typeof(Interop.IpHlpApi.FIXED_INFO));
                         }
                         else
                         {
@@ -56,7 +56,7 @@ namespace DnsClient.Windows.IpHlpApi
 
                             while (addr.Next != IntPtr.Zero)
                             {
-                                addr = Marshal.PtrToStructure<Interop.IpHlpApi.IP_ADDR_STRING>(addr.Next);
+                                addr = (Interop.IpHlpApi.IP_ADDR_STRING)Marshal.PtrToStructure(addr.Next, typeof(Interop.IpHlpApi.IP_ADDR_STRING));
                                 if (IPAddress.TryParse(addr.IpAddress, out ip))
                                 {
                                     dnsAddresses.Add(ip);

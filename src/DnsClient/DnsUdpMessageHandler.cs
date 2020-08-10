@@ -112,7 +112,7 @@ namespace DnsClient
 
                 using (var memory = new PooledBytes(readSize))
                 {
-#if !NET45
+#if !NET45 && !NET20
                     int received = await udpClient.Client.ReceiveAsync(new ArraySegment<byte>(memory.Buffer), SocketFlags.None).ConfigureAwait(false);
 
                     var response = GetResponseMessage(new ArraySegment<byte>(memory.Buffer, 0, received));

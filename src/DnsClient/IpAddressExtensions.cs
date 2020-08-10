@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DnsClient;
+using System;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -37,7 +38,7 @@ namespace System.Net
             else if (ip.AddressFamily == AddressFamily.InterNetwork)
             {
                 // else IP4
-                return string.Join(".", bytes) + ".in-addr.arpa.";
+                return StringExtensions.Join(".", bytes) + ".in-addr.arpa.";
             }
 
             // never happens anyways!?

@@ -174,7 +174,7 @@ namespace DnsClient
                         IsAuthenticData ? "ad" : ""
                     };
 
-            var flagsString = string.Join(" ", flags.Where(p => p != ""));
+            var flagsString = StringExtensions.Join(" ", flags.Where(p => p != ""));
             return $"{head}\r\n;; flags: {flagsString}; QUERY: {QuestionCount}, " +
                 $"ANSWER: {AnswerCount}, AUTHORITY: {NameServerCount}, ADDITIONAL: {AdditionalCount}";
         }

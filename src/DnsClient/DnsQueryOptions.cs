@@ -23,7 +23,7 @@ namespace DnsClient
         public const int MaximumBufferSize = 4096;
 
         private static readonly TimeSpan s_defaultTimeout = TimeSpan.FromSeconds(5);
-        private static readonly TimeSpan s_infiniteTimeout = System.Threading.Timeout.InfiniteTimeSpan;
+        private static readonly TimeSpan s_infiniteTimeout = TimeoutEx.InfiniteTimeSpan;
         private static readonly TimeSpan s_maxTimeout = TimeSpan.FromMilliseconds(int.MaxValue);
         private TimeSpan _timeout = s_defaultTimeout;
         private int _ednsBufferSize = MaximumBufferSize;
@@ -285,7 +285,7 @@ namespace DnsClient
         {
             if (nameServers != null && nameServers.Length > 0)
             {
-                NameServers = nameServers.ToList();
+                NameServers = nameServers.ToReadOnlyList();
             }
             else
             {
@@ -317,7 +317,7 @@ namespace DnsClient
         /// <summary>
         /// Gets a list of name servers which should be used to query.
         /// </summary>
-        public IReadOnlyList<NameServer> NameServers { get; } = new NameServer[0];
+        public IReadOnlyList<NameServer> NameServers { get; } = (new NameServer[0]).ToReadOnlyList();
 
         /// <summary>
         /// Converts the query options into readonly settings.
@@ -339,7 +339,7 @@ namespace DnsClient
     /// </summary>
     public class LookupClientOptions : DnsQueryAndServerOptions
     {
-        private static readonly TimeSpan s_infiniteTimeout = System.Threading.Timeout.InfiniteTimeSpan;
+        private static readonly TimeSpan s_infiniteTimeout = TimeoutEx.InfiniteTimeSpan;
 
         // max is 24 days
         private static readonly TimeSpan s_maxTimeout = TimeSpan.FromMilliseconds(int.MaxValue);
@@ -738,7 +738,7 @@ namespace DnsClient
         /// <summary>
         /// Gets a collection of name servers which should be used to query.
         /// </summary>
-        public IReadOnlyList<NameServer> NameServers => _endpoints;
+        public IReadOnlyList<NameServer> NameServers => _endpoints.ToReadOnlyList();
 
 
         /// <summary>
@@ -806,7 +806,7 @@ namespace DnsClient
                     servers[i - 1] = temp;
                 }
 
-                return servers;
+                return servers.ToReadOnlyList();
             }
 
             return NameServers;

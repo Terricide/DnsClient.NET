@@ -155,6 +155,7 @@ namespace DnsClient
         internal static NameServer[] Convert(IReadOnlyCollection<IPEndPoint> addresses)
             => addresses?.Select(p => (NameServer)p).ToArray();
 
+
         /// <summary>
         /// Returns a <see cref="System.String" /> that represents this instance.
         /// </summary>
@@ -199,7 +200,7 @@ namespace DnsClient
         /// </returns>
         public static IReadOnlyCollection<NameServer> ResolveNameServers(bool skipIPv6SiteLocal = true, bool fallbackToGooglePublicDns = true)
         {
-            IReadOnlyCollection<IPAddress> endPoints = new IPAddress[0];
+            IReadOnlyCollection<IPAddress> endPoints = (new IPAddress[0]).ToReadOnlyList();
 
             List<Exception> exceptions = new List<Exception>();
 
@@ -246,14 +247,14 @@ namespace DnsClient
 
             if (endPoints == null)
             {
-                endPoints = new IPAddress[0];
+                endPoints = (new IPAddress[0]).ToReadOnlyList();
             }
 
             IReadOnlyCollection<NameServer> filtered = endPoints
                 .Where(p => (p.AddressFamily == AddressFamily.InterNetwork || p.AddressFamily == AddressFamily.InterNetworkV6)
-                    && (!p.IsIPv6SiteLocal || !skipIPv6SiteLocal))                
+                    && (!p.IsIPv6SiteLocal || !skipIPv6SiteLocal))
                 .Select(p => new NameServer(p))
-                .ToArray();
+                .ToArray().ToReadOnlyList();
 
             filtered = ValidateNameServers(filtered, logger);
 
@@ -266,10 +267,10 @@ namespace DnsClient
                     GooglePublicDns2IPv6,
                     GooglePublicDns,
                     GooglePublicDns2,
-                };
+                }.ToReadOnlyList();
             }
 
-            logger?.LogDebug("Resolved {0} name servers: [{1}].", filtered.Count, string.Join(",", filtered.AsEnumerable()));
+            logger?.LogDebug("Resolved {0} name servers: [{1}].", filtered.Count, StringExtensions.Join(",", filtered.AsEnumerable()));
             return filtered;
         }
 
@@ -300,7 +301,7 @@ namespace DnsClient
                 addresses = Linux.StringParsingHelpers.ParseDnsAddressesFromResolvConfFile(EtcResolvConfFile).ToArray();
             }
 
-            return addresses;
+            return addresses.ToReadOnlyList();
         }
 
 #endif
@@ -320,7 +321,7 @@ namespace DnsClient
                 }
             }
 
-            return validServers;
+            return validServers.ToReadOnlyList();
         }
 
         private static IReadOnlyCollection<IPAddress> QueryNetworkInterfaces()
@@ -342,7 +343,7 @@ namespace DnsClient
                 }
             }
 
-            return result.ToArray();
+            return result.ToArray().ToReadOnlyList();
         }
     }
 }

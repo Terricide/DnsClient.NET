@@ -122,10 +122,10 @@ namespace DnsClient
             if (dnsResponseMessage == null) throw new ArgumentNullException(nameof(dnsResponseMessage));
             Header = dnsResponseMessage.Header;
             MessageSize = dnsResponseMessage.MessageSize;
-            Questions = dnsResponseMessage.Questions.ToArray();
-            Answers = dnsResponseMessage.Answers.ToArray();
-            Additionals = dnsResponseMessage.Additionals.ToArray();
-            Authorities = dnsResponseMessage.Authorities.ToArray();
+            Questions = dnsResponseMessage.Questions.ToArray().ToReadOnlyList();
+            Answers = dnsResponseMessage.Answers.ToArray().ToReadOnlyList();
+            Additionals = dnsResponseMessage.Additionals.ToArray().ToReadOnlyList();
+            Authorities = dnsResponseMessage.Authorities.ToArray().ToReadOnlyList();
             NameServer = nameServer ?? throw new ArgumentNullException(nameof(nameServer));
             Settings = settings;
         }
@@ -145,8 +145,8 @@ namespace DnsClient
 
             return
                 Header.ToString().Equals(response.Header.ToString())
-                && string.Join("", Questions).Equals(string.Join("", response.Questions))
-                && string.Join("", AllRecords).Equals(string.Join("", response.AllRecords));
+                && StringExtensions.Join("", Questions).Equals(StringExtensions.Join("", response.Questions))
+                && StringExtensions.Join("", AllRecords).Equals(StringExtensions.Join("", response.AllRecords));
         }
 
         /// <inheritdoc />
@@ -154,7 +154,7 @@ namespace DnsClient
         {
             if (!_hashCode.HasValue)
             {
-                _hashCode = (Header.ToString() + string.Join("", Questions) + string.Join("", AllRecords)).GetHashCode();
+                _hashCode = (Header.ToString() + StringExtensions.Join("", Questions) + StringExtensions.Join("", AllRecords)).GetHashCode();
             }
 
             return _hashCode.Value;

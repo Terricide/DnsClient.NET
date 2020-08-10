@@ -9,7 +9,7 @@ namespace DnsClient
 {
     internal class ResponseCache
     {
-        private static readonly TimeSpan s_infiniteTimeout = Timeout.InfiniteTimeSpan;
+        private static readonly TimeSpan s_infiniteTimeout = TimeoutEx.InfiniteTimeSpan;
 
         // max is 24 days
         private static readonly TimeSpan s_maxTimeout = TimeSpan.FromMilliseconds(int.MaxValue);
@@ -145,7 +145,7 @@ namespace DnsClient
                         // in millis
                         double minTtl = all.Min(p => p.InitialTimeToLive) * 1000d;
 
-                        if (MinimumTimout == Timeout.InfiniteTimeSpan)
+                        if (MinimumTimout == TimeoutEx.InfiniteTimeSpan)
                         {
                             // TODO: Log warning once?
                             minTtl = s_maxTimeout.TotalMilliseconds;
@@ -156,7 +156,7 @@ namespace DnsClient
                         }
 
                         // max TTL check which can limit the upper boundary
-                        if (MaximumTimeout.HasValue && MaximumTimeout != Timeout.InfiniteTimeSpan && minTtl > MaximumTimeout.Value.TotalMilliseconds)
+                        if (MaximumTimeout.HasValue && MaximumTimeout != TimeoutEx.InfiniteTimeSpan && minTtl > MaximumTimeout.Value.TotalMilliseconds)
                         {
                             minTtl = MaximumTimeout.Value.TotalMilliseconds;
                         }

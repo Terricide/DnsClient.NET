@@ -70,7 +70,7 @@ namespace DnsClient.Protocol
 
         private protected override string RecordToString()
         {
-            return string.Join(" ", EscapedText.Select(p => "\"" + p + "\"")).Trim();
+            return StringExtensions.Join(" ", EscapedText.Select(p => "\"" + p + "\"")).Trim();
         }
     }
 }

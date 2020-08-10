@@ -3,7 +3,7 @@
     <VersionPrefix>1.4.0</VersionPrefix>
     <VersionSuffix Condition="'$(VersionSuffix)'!='' AND '$(BuildNumber)' != ''">$(VersionSuffix)-$(BuildNumber)</VersionSuffix>
 
-    <TargetFrameworks>netstandard1.3;netstandard2.0;netstandard2.1;net45;net471</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net45;net471;net20</TargetFrameworks>
     <DebugType>full</DebugType>
 
     <Product>DnsClient.NET</Product>
@@ -53,4 +53,9 @@
     <PackageReference Include="Microsoft.Win32.Primitives" Version="4.3.0" />
     <PackageReference Include="System.Diagnostics.TraceSource" Version="4.3.0" />
   </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net20' ">
+    <ProjectReference Include="C:\Users\Mark\Source\Repos\Vcms\Verismic.Common\Libraries\MonoLib\MonoLib.csproj" />
+  </ItemGroup>
+
 </Project>

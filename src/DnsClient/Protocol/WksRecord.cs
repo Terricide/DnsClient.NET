@@ -124,7 +124,7 @@ namespace DnsClient.Protocol
 
         private protected override string RecordToString()
         {
-            return $"{Address} {Protocol} {string.Join(" ", Ports)}";
+            return $"{Address} {Protocol} {StringExtensions.Join(" ", Ports)}";
         }
 
         private static int[] GetPorts(byte[] data)

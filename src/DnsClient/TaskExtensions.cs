@@ -15,7 +15,7 @@
                         onCancel();
                     }
                     catch { }
-                    throw new OperationCanceledException(cancellationToken);
+                    throw new OperationCanceledExceptionEx(cancellationToken);
                 }
             }
 
